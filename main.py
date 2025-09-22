@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import filedialog
 from PIL import Image, ImageTk
 
+
 class ImageEditorApp:
     def __init__(self, root):
         self.root = root
@@ -46,12 +47,30 @@ class ImageEditorApp:
             width, height = img.size
             pixels = img.load()
 
-            pixels[0, 0] = (64, 255, 255)
-            pixels[width - 1, 0] = (64, 127, 64)
-            pixels[width // 2, height - 1] = (127, 64, 64)
+            pixels[0, 0] = (64, 255, 255)  # верхний левый угол
+            pixels[width - 1, 0] = (64, 127, 64)  # верхний правый угол
+            pixels[width // 2, height - 1] = (127, 64, 64)  # центр нижней строки
 
             self.image = img
             self.show_image(img)
+
+    def save_as_ppm(self, file_path):
+        """Сохраняет изображение в формате PPM (ASCII)"""
+        if self.image:
+            img = self.image.convert("RGB")
+            width, height = img.size
+            pixels = img.load()
+
+            with open(file_path, "w") as f:
+                f.write("P3\n")
+                f.write(f"{width} {height}\n")
+                f.write("255\n")
+                for y in range(height):
+                    row = []
+                    for x in range(width):
+                        r, g, b = pixels[x, y]
+                        row.append(f"{r} {g} {b}")
+                    f.write(" ".join(row) + "\n")
 
     def save_image(self):
         if self.image:
@@ -59,13 +78,12 @@ class ImageEditorApp:
                 defaultextension=".png",
                 filetypes=[
                     ("PNG files", "*.png"),
-                    ("PBM files", "*.pbm")
+                    ("PPM ASCII files", "*.ppm")
                 ]
             )
             if file_path:
-                if file_path.lower().endswith(".pbm"):
-                    bw_image = self.image.convert("1")
-                    bw_image.save(file_path)
+                if file_path.lower().endswith(".ppm"):
+                    self.save_as_ppm(file_path)
                 else:
                     self.image.save(file_path, "PNG")
 
